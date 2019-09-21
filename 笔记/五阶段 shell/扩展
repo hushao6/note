@@ -1,0 +1,9 @@
+sed -r 's/^(.{9})(.)(.*)(.)(.{9}$)/\1\4\3\2\5/' test  #将文本第十个和倒数第十个字符互换
+sed  's/[a-z]/\l&/g' test 小写 #          大写变小写
+sed  's/[a-z]/\u&/g' test 大写 #将文本所有小写边大写
+
+ifconfig | grep -E '([0-9a-f]{2}:){5}[0-9a-f]{2}'  #过滤网卡的mac地址 因为是16进制
+
+
+
+https://blog.csdn.net/weixin_44135121 #csdn博客

@@ -1,0 +1,17 @@
+yum group list
+yum groupinfo 组名
+GPL协议：随便改，随便下载，随便用，但是改完必须也是开源的
+nginx源码.tar
+解压
+./configure
+make && make install
+把/usr/local/nginx目录压缩成nginx.rpm
+这样大概步骤就完了(全是自动的)
+需得把源码包放在SOURCES目录下
+
+
+iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j SNAT --to-source 201.1.2.5
+如果３.0想上网就就会to到201.1.2.5上　　　　nat转换
+
+PSK
+pre share key ＃预共享秘钥

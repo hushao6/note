@@ -1,0 +1,145 @@
+###############################################################
+#日志切割
+#为了防止文件越来越大，可以做日志切割
+#可以把下面两条命令写成脚本，然后做定时任务
+#文件命名可以用　date　变量
+#mv access.log access2.log
+#kill -USR1 $(cat /usr/local/nginx/logs/nginx.pid)
+################################################################
+#优化linux内核参数(最大文件数量)
+#ulimit Hn 1000000　　　　＃临时设置硬限制
+#ulimit Sn 1000000　　　　＃临时设置软限制
+#永久修改
+#vim /etc/security/limits.conf
+#*               soft    nofile            100000
+#*               hard    nofile            100000
+worker_processes  1;  #本机cpu数量为几，数字为几　提高并发
+events {
+    worker_connections  1024(65536); #提高并发
+}
+################################################################
+#nginx四层调度器
+#Nginx编译安装时需要使用--with-stream，开启ngx_stream_core_module模块
+stream {
+ upstream backend  {
+   server 192.168.2.100:21;
+   server 192.168.2.200:21;
+}
+ server {
+   listen 12345;
+   proxy_pass backend;
+   #proxy_connect_timeout 20s;
+   }
+}
+################################################################
+http {
+################################################################
+#服务器内存缓存
+#如果需要处理大量静态文件，可以将文件缓存在内存，下次访问会更快
+#设置服务器最大缓存2000个文件句柄，关闭20秒内无请求的文件句柄
+#文件句柄的有效时间是60秒，60秒后过期
+#只有访问次数超过5次会被缓存
+        open_file_cache   max=2000  inactive=20s;
+        open_file_cache_valid    60s;
+        open_file_cache_min_uses 5;
+        open_file_cache_errors   off;
+################################################################
+    gzip  on; #开启压缩
+　　gzip_min_length 1000;　#小文件不压缩
+    gzip_comp_level4;　#压缩比率(1-9数字越大速度越慢，压缩比率越高，折中就行)　　
+    gzip_type text/plain text/css application/json;
+#对特定文件压缩,类型参考　mime.types　文件
+###############################################################
+#优化Nginx数据包头缓存，不至于报414错误
+client_header_buffer_size    1k;   #默认请求包头信息的缓存(1000字节)
+large_client_header_buffers  4 4k; #大请求包头部信息的缓存个数和容量
+################################################################
+#7层调度　轮询　与下边的proxy_pass对应
+        upstream webserver {
+        server 192.168.2.100;
+        server 192.168.2.200;}
+################################################################
+    server {
+        listen       80;
+        server_name  www.a.com;
+        charset utf-8; #开启此功能后,404报错页面就支持中文
+###############################################################
+#当输入　网址/status　时可以查看状态页面
+#需要源码安装--with-http_stub_status_module模块
+location /status {
+                stub_status on;
+                 #allow IP地址;
+                 #deny IP地址;
+        }        
+######################################################
+location / {
+         root   html;
+         index  index.html index.htm;
+       # proxy_pass http://webserver;
+        }
+        error_page  404              /404.html; #404报错页面
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+######################################################
+#定以对静态页面的缓存时间
+#当碰到以下结尾的时候，就会缓存到客户端.
+#适用于不怎么变动的页面上
+         location ~* \.(jpg|jpeg|gif|peng|css|js|co|xml)${
+         expires 30d; #定义客户端缓存时间为３０天
+}
+#######################################################
+#可以解析php页面，做动静分离用
+        location ~ \.php$ {
+            root           html;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            include        fastcgi_params;
+        }
+       } #这是上一个server虚拟主机的结尾符号
+####################################################
+#nginx虚拟主机,一个server一个虚拟主机
+    server {
+        listen       80;
+        server_name  www.a.com; #域名名字
+##################################################################
+#last 不再读其他rewrite
+#break 不再读其他语句，结束请求(包括localtion里边的)
+#redirect 临时重定向
+#permament 永久重定向
+#当访问 a 网页时会重定向到 b 网页
+        rewrite /a.html /b.html;
+#当访问本机ip下面子页面时，会跳转到www.tmooc.cn下相同的页面（子页面）
+　　　　rewrite ^(.*)$ http://www.tmooc.cn/$1
+#################################################################
+    auth_basic "随便写的，必须是英文，中文会乱码"
+#认证的密码文件，需要安装httpd-tools通过(htpasswd -c /usr/local/nginx/pass tom)
+#上面那个命令创建一个tom的认证用户
+　　auth_basic_user_file "／usr/local/nginx/pass";
+####################################################
+        location / {
+            root   www;         #网页根路径为www
+            index  index.html index.htm;
+        }
+    }
+####################################################
+#创建一个SSL虚拟主机
+#openssl genrsa > cert.key #生成私钥
+#openssl req -new -x509 -key cert.key > cert.pem　＃生成证书 
+#需安装openssl-devel和安装--with-http_ssl_module模块
+     server {
+        listen       443 ssl;
+        server_name  www.c.com; #域名
+        ssl_certificate      cert.pem; #证书文件
+        ssl_certificate_key  cert.key;　　#私钥文件
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+    }
+}

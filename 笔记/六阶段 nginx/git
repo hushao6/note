@@ -1,0 +1,49 @@
+创建git服务器有三种方法
+1.ssh协议服务器（支持读写）（需安装git）
+2.git协议服务器（只读操作服务器）(需安装　git-daemon)
+3.http协议服务器（只读操作服务器）(需安装　httpd gitweb)
+
+常用命令：
+以下命令均使用/var/git/project 做为服务器仓库地址
+
+1) git init /var/git/project --bare ＃初始化一个空的仓库
+
+2) git clone root＠192.168.2.100：/var/git/project　＃克隆服务器仓库到本地
+
+3) git config --global user.email "you@example.com" #配置邮箱
+
+4) git config --global user.name "Your name"　＃配置你的名字
+
+5) git status #查看仓库中数据的状态
+
+6) git add . #将工作区的修改提交到暂存区　．是当前目录
+
+7) git commit -m "这里写注释，方便后期管理"　#将暂存区的数据提交到本地仓库
+
+8) git config --global push.default simple #pass
+
+9) git push #将本地仓库中的数据推送到远程服务器
+
+10) git pull  #将服务器上的数据更新到本地（更新旧数据拿到最新数据）
+
+11) git log  #查看日志
+
+12) git log --pretty=oneline #查看日志
+
+13) git log --oneline #查看日志
+
+14) git log --reflog #查看日志
+
+15) git reset --hard 12345(随意写的具体看日志)　#移动head指针,将数据还原到任意版本
+
+16) git reflog　　#查看指针移动历史
+
+17) git branch -v #查看分支
+
+18) git branch test #创建一个名为test的分支
+
+19) git checkout test 切换到test的分支上
+
+20) git merage test #将test分支上的数据合并到master上，前提所在分支是master
+
+如果合并冲突的话，就查看冲突的文件内容，修改文件为最终版本的数据，解决冲突.

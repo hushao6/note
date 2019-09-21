@@ -1,0 +1,157 @@
+回顾
+直连路由,静态路由,缺省(默认)路由, 0.0.0.0 0,动态路由
+传输层  
+tcp 三次握手  syn-->ack syn-->ack
+	四次断开  fin-->ack-->fin-->ack
+ssh 22,http 80,ftp 21,dns 53,smtp 25,https 443
+
+udp 
+tftp 69,dns 53,ntp 123
+
+acl
+基本 2000~2999   源ip
+高级 3000~3999   源ip  目标ip  协议  端口
+##############################################
+使用高级acl配置网络:
+[Huawei]acl 3000    
+[Huawei-acl-adv-3000]rule deny tcp source 192.168.2.1 0 destination 192.168.1.1 0 destination-port eq 21   //拒绝2.1访问1.1的ftp服务
+
+in g0/0/1
+undo traffic-filter inbound    //如果有acl 2000,需要删除
+traffic-filter inbound acl 3000   //在接口应用acl
+
+[Huawei]acl 3000   
+[Huawei-acl-adv-3000]rule deny tcp source 192.168.2.2 0 destination 192.168.1.1 0 destination-port eq 80   //拒绝2.2访问1.1的www服务
+
+#############################################
+NAT 网络地址转换 , 可以将内部私有地址与外部公有地址相互转换,实现内外互通的目的
+优点: 节约公网ip,增加安全,处理地址重叠
+
+ipv4   42亿
+A 1~127   255.0.0.0     /8
+B 128~191 255.255.0.0   /16
+C 192~223 255.255.255.0 /24
+
+私有地址范围 
+A 10.0.0.0~10.255.255.255
+B 172.16.0.0~172.31.255.255
+C 192.168.0.0~192.168.255.255
+=================================
+nat常用的2种类型:
+静态转换     1对1    适合服务器对外发布服务的环境   内外双方均可发起链接
+easy ip  1对多   适合仅仅访问外网的需求,比如办公室环境员工上网, 只能由内向外发起数据请求
+=================================
+静态nat配置
+[Huawei]interface GigabitEthernet 0/0/1   //进入外网接口
+[Huawei-GigabitEthernet0/0/1]nat static global 100.0.0.2 inside 192.168.2.1   //配置nat实现2.1在访问外网时使用的地址是100.0.0.2
+[Huawei-GigabitEthernet0/0/1]nat static global 100.0.0.3 inside 192.168.2.2   //配置nat实现2.2在访问外网时使用的地址是100.0.0.3
+=================================
+easy ip 配置
+首先删除之前的静态nat
+undo nat static global 100.0.0.2 inside 192.168.2.1
+undo nat static global 100.0.0.3 inside 192.168.2.2
+acl 2000    //定义acl
+rule permit source any   //设置允许访问外网的主机,放行所有人
+in g0/0/1    //进入外网接口
+nat outbound 2000   //开启nat功能,需要配合acl列表号
+#########################################
+实现网关的高可用
+vrrp 虚拟路由冗余协议,可以理解为网关的备份
+
+==========================
+按拓扑需求配置ip
+三层交换机接口配置ip需要先创建vlan
+然后进入vlan配置ip,再将对应的接口加入vlan
+in g0/0/2
+port link-type access
+port default vlan 2
+
+三层交换机和路由器都开启动态路由
+ospf
+area 0
+network 192.168.1.0 0.0.0.255
+network 192.168.2.0 0.0.0.255
+
+pc2临时使用252或者253作为网关
+==================================
+vrrp三个角色
+主路由器(master),负责转发数据 
+备份路由器(backup),监视主路由器,准备随时替代
+虚拟路由器,客户机的网关
+===================================
+配置:
+in vlan 1
+vrrp vrid 1 virtual-ip 192.168.1.254
+dis vrrp brief  //查看vrrp信息
+pc的网关修改为254
+===================================
+使用vrrp实现数据的负载均衡
+sw1   vlan1   主    vlan2  备
+sw2   vlan2   主    vlan1  备
+
+所有交换机创建vlan2
+所有链路配置为trunk,为了节约时间可以使用接口组
+port-group 1    //创建1号接口组
+group-member g0/0/1 to g0/0/3  //组中添加1口到3口
+port link-type trunk    //为所有加入的接口配置trunk
+port trunk allow-pass vlan all
+注意s3700使用的是E口
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

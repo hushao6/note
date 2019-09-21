@@ -1,0 +1,135 @@
+交换机  组建网络的基本设备,可以智能的通过数据帧中的mac地址进行数据转发
+vlan 控制广播 增加安全 增加带宽的利用率 降低延迟
+路由器  链接不同范围的网络
+三层交换机 = 二层交换+三层转发
+
+使用三层交换机链接网络:
+1,创建对应vlan
+2,将对应接口加入vlan
+[Huawei]interface G0/0/2
+[Huawei-GigabitEthernet0/0/2] port link-type access
+[Huawei-GigabitEthernet0/0/2] port default vlan 2
+[Huawei]interface G0/0/3
+[Huawei-GigabitEthernet0/0/2] port link-type access
+[Huawei-GigabitEthernet0/0/2] port default vlan 3
+3,进入三层交换机的虚拟接口,配置ip地址,作为所在vlan设备的网关
+[Huawei]interface Vlanif 1
+[Huawei-Vlanif1]ip address 192.168.1.254 24
+[Huawei]interface Vlanif 2
+[Huawei-Vlanif1]ip address 192.168.2.254 24
+[Huawei]interface Vlanif 3
+[Huawei-Vlanif1]ip address 192.168.3.254 24
+
+添加S3700交换机,更合理的利用S5700
+1,在S3700创建vlan2 vlan3
+2,将对应的接口加入vlan
+interface e0/0/2
+port link-type access
+port default vlan 2
+interface e0/0/3
+port link-type access
+port default vlan 3
+3,在2台交换机之间的链路配置trunk(2台交换机的接口都要配置)
+port link-type trunk
+port trunk allow-pass vlan all
+
+
+三层交换机接口配置ip思路
+1,创建vlan
+2,进入vlan接口(虚拟接口)配置ip
+3,将接口加入该vlan
+
+路由种类:
+直连路由,配置好ip,开启接口后自动产生
+静态路由,管理员手工配置
+默认路由(缺省路由),属于特殊的静态路由,可以匹配任意网络,通常在网关出口使用
+动态路由,由某种动态路由协议实现,适合大规模网络
+ospf 开放最短路径优先
+
+使用动态路由:
+1,开启服务
+2,配置区域 0
+3,宣告所在网段   反掩码   1变0   0变1
+255.255.255.0    /24
+11111111.11111111.11111111.00000000
+0.0.0.255
+
+display ip interface brief  查看设备的ip地址配置情况
+
+三层交换机配置:
+ospf
+area 0
+network 192.168.1.0 0.0.0.255
+network 192.168.2.0 0.0.0.255
+network 192.168.3.0 0.0.0.255
+network 192.168.4.0 0.0.0.255
+
+路由器配置
+ospf
+area 0
+network 192.168.4.0 0.0.0.255
+network 192.168.5.0 0.0.0.255
+
+可以通过查看路由表检查最终效果
+排错: 1检查ip,2检查vlan,3检查路由协议(ospf)以及路由表
+
+端口号   80 httpd
+4000
+4001
+5000
+
+
+osi 7层参考模型   物理层,数据链路层,网络层,传输层,会话层,表示层,应用层   
+tcp/ip 5层参考模型  物理层,数据链路层,网络层,传输层,应用层
+
+网络层  点到点的数据传递
+传输层  端到端的数据传递
+传输质量
+效率
+质量
+
+tcp 传输控制协议,效率低,可靠,面向连接
+http,https,ssh,ftp,dns,
+
+SYN 准备与对方建立连接
+ACK 确认
+FIN 准备与对方断开链接
+
+三次握手
+
+tcp 3306
+
+udp 用户数据报协议,效率高,不可靠,无连接
+50ms  60ms~100ms
+1s=1000ms
+
+ACL 访问控制列表
+基本acl   列表号 2000~2999     源ip
+高级acl   列表号 3000~3999     源ip 目标ip  协议   端口
+练习1
+在路由器中使用acl实现数据控制
+禁止2.1通过:
+acl 2000
+rule deny source 192.168.2.1 0   //禁止源ip是2.1的数据
+interface GigabitEthernet 0/0/1
+traffic-filter inbound acl 2000   //在接口中应用acl
+练习2
+允许2.1与1.1通讯,拒绝其他主机与1.1通讯:
+acl 2001
+允许2.1通过
+拒绝所有  any
+acl 2001
+rule permit source 192.168.2.1 0   //允许2.1通过
+rule deny source any    //拒绝所有
+interface GigabitEthernet 0/0/1
+undo traffic-filter inbound     //清除原有acl
+traffic-filter inbound acl 2001
+
+
+
+
+
+
+
+
+

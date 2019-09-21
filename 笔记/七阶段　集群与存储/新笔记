@@ -1,0 +1,24 @@
+125分钟　ｎａｔ
+httpd 没有设置servername 可能会很慢（可能是设了网关）　httpd.conf
+lvs 虚拟机自带的　装ipvsadm是为了敲命令
+lvs proxy的原理就跟路由器的原理一样
+ipvsadm 大写字母(A E D)　　定义虚拟服务器　　　proxy
+ipvsadm 小写字母(a e d)        定义real serer   web1 web2
+ipvsadm -C 清空所有
+ipvsadm -Ln　　列出规则，显示端口号（list number）
+ipvsadm -a -t 192.168.4.5:80(往哪个虚拟服务器添加) -r(real) 192.168.2.200:80　－w(权重)
+
+
+
+client--->proxy--->web1 web1--->client    ping谁 谁回应所以要伪装ip
+                   web2
+
+1.web需要和client在一个网段
+2.web需要伪装成调度的ip
+3.修改内容和防止网络冲突
+4.vip必须配置辅助借口，DIP必须配在主接口
+
+/proc/sys/net/ipv4/conf/all/arp_ignore
+net.ipv4.all.arp_ignore
+
+sysctl -p 刷新　读取文件立即生效

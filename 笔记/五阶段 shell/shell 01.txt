@@ -1,0 +1,144 @@
+shell脚本
+/bin/bash   默认解释器
+cat /etc/shells   查看所有解释器
+yum -y install ksh   安装新解释器
+
+bash优点 
+tab建,快捷键,历史记录,管道符,重定向
+--------------------------------------------------------------------------
+规范的shell脚本
+1,声明解释器
+2,注释脚本功能,变量含义等等
+3,执行代码
+--------------------------------------------------------------------------
+脚本的运行方式
+1, 添加x执行权限  
+chmod +x test1.sh
+2, 使用解释器执行, 开启子进程
+bash test1.sh
+3, 使用当前解释器执行,不开启子进程
+source test1.sh
+
+----------------------------------------------------------------------
+编写一键部署ftp服务的脚本:
+#!/bin/bash
+yum -y install vsftpd &> /dev/null
+systemctl restart vsftpd
+systemctl enable vsftpd
+cp /etc/passwd /var/ftp/pub
+
+测试时把防火墙临时关闭
+使用真机访问虚拟机的ftp
+
+常量 固定不变
+变量 灵活多变
+1,自定义变量,名称需要使用大小写字母,数字或下划线,禁止使用特殊符号,不能以数字开头
+   变量名称=值
+2,环境变量 USER UID HOME HOSTNAME SHELL PATH PS1 PS2
+3,位置变量和预定义变量
+    $1  $2  $3  $0  $$  $#  $*  $?
+#!/bin/bash
+echo $1   脚本后的第1个参数
+echo $2   脚本后的第2个参数
+echo $3   脚本后的第3个参数
+echo $0   脚本名
+echo $$   显示脚本执行时的进程ID号
+echo $#   参数的个数
+echo $*   所有参数
+echo $?   判断上一条指令是否执行成功 0成功   非0失败
+
+编写创建账户与配置密码的脚本:
+#!/bin/bash
+useradd xyz
+echo 123 | passwd --stdin xyz
+
+升级版:
+#!/bin/bash
+useradd $1
+echo $2 | passwd --stdin $1
+
+env 查看所有环境变量
+set 查看所有变量
+=======================================
+变量扩展知识:
+""  双引号,界定范围
+''   单引号,界定范围,屏蔽特殊符号
+``  反撇号 或$() ,获取命令执行的结果
+tar -zcf log-`date +%Y-%m-%d`.tar.gz /var/log
+-------------------------------------------
+使用read功能编写交互式脚本:
+#!/bin/bash
+read -p "请输入用户名"  User
+useradd $User
+read -p "请输入密码"  Pass
+echo $Pass | passwd --stdin $User
+-------------------------------------------
+stty -echo  屏蔽回显
+stty echo   恢复回显
+------------------------------------------
+#!/bin/bash
+read -p "请输入用户名" User
+useradd $User
+stty -echo
+read -p "请输入密码" Pass
+stty echo
+echo $Pass | passwd --stdin $User
+-------------------------------------------
+export 发布全局变量
+export a=10  发布新的全局变量
+export b  将局部变量扩展为全局变量
+export -n a   取消全局变量,恢复为局部变量
+unset a  取消变量定义(删除变量)
+====================================
+shell中的运算
+1, expr
+expr 1 + 1  加
+expr 1 - 1  减
+expr 2 \* 2 乘        \ 转义符号,屏蔽之后一个字符的特殊含义
+expr 10 / 5 除
+expr 10 % 3 求模,相当于取余数
+2, $[] 或 $(())
+echo $[1+1]
+echo $[10-5]
+echo $[10*5]
+echo $[10/5]
+echo $[10%5]
+3, let 通常用于变量计算,结果不显示
+let a=1+1
+let c=c+c
+对变量自增减:
+				     主流写法(主要掌握)
+let a=a+1  相当于    let a++
+let a=a-1 		  let a--
+let a=a+2  		  let a+=2
+let a=a-2  		  let a-=2
+let a=a*2  		  let a*=2
+let a=a/2  		  let a/=2
+let a=a%2  		  let a%=2
+
+4 ,计算器  bc 可以计算小数
+echo "1.1+1" | bc
+echo "scale=3;10/3" | bc
+
+休息  17:30回
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

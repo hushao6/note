@@ -1,0 +1,275 @@
+回顾
+条件测试
+1,字符串    ==    !=   -z   ! -z
+2,数字  -eq   -ne   -gt   -ge   -lt   -le
+3,文件  -e  -d  -f  -r  -w  -x
+4,逻辑   &&       ||
+
+if
+单分支
+if 条件测试 ;then
+	命令序列
+fi
+双分支
+if 条件测试 ;then
+	命令序列1
+else
+	命令序列2
+fi
+多分支
+if 条件测试1 ;then
+	命令序列1
+elif 条件测试2 ;then
+	命令序列2
+elif 条件测试3;then
+	命令序列3
+elif 条件测试4 ;then
+	命令序列4
+.......
+else
+	命令序列n
+fi
+
+ping -c  -i  -W 1
+
+for    有次数限制
+for i in 值1 值2 .....
+do
+	循环任务
+done
+
+while :   无限循环
+do
+	循环任务
+	exit
+done
+=======================================
+case分支,相当于简化版本的if,功能不如if强大,但是代码比if精简
+
+case  变量  in
+模式1)
+    命令序列1 ;;
+模式2)
+    命令序列2 ;;
+    .. ..
+*)
+    默认命令序列
+esac
+---------------------------------------------------------
+#!/bin/bash
+case $1 in
+t)
+        touch $2 ;;
+m)
+        mkdir $2 ;;
+r)
+        rm -rf $2 ;;
+*)
+        echo "t|m|r"
+esac
+
+==============================
+使用case分支编写工具脚本:
+1,准备工作
+scp lnmp_soft.tar.gz root@server0:/opt   将真机的tar包传入虚拟机
+tar -xf lnmp_soft.tar.gz  在虚拟机中释放tar包
+cp lnmp_soft/nginx-1.12.2.tar.gz /opt  拷贝nginx包到opt
+---------------------------------------------------------
+编写一键源代码安装nginx的脚本
+#!/bin/bash
+yum -y install gcc openssl-devel pcre-devel  &> /dev/null
+tar -xf nginx-1.12.2.tar.gz
+cd nginx-1.12.2
+./configure
+make
+make install
+------------------------------------------------------
+运行脚本后,nginx自动安装完毕
+cd /usr/local/nginx/sbin/    前往nginx主程序所在目录
+./nginx    执行程序(开启nginx网站服务)
+关闭防火墙后,在真机打开浏览器输入虚拟机的地址可以看到网站
+----------------------------------------------------------------------------
+#!/bin/bash
+case $1 in
+st)
+        /usr/local/nginx/sbin/nginx ;;
+stop)
+        /usr/local/nginx/sbin/nginx -s stop ;;
+re)
+        /usr/local/nginx/sbin/nginx -s stop
+        /usr/local/nginx/sbin/nginx ;;
+*)
+        echo "st开启|stop关闭|re重启"
+esac
+----------------------------------------------------------------------------
+完善脚本:
+#!/bin/bash
+case $1 in
+st)
+        /usr/local/nginx/sbin/nginx ;;
+stop)
+        /usr/local/nginx/sbin/nginx -s stop ;;
+re)
+        /usr/local/nginx/sbin/nginx -s stop
+        /usr/local/nginx/sbin/nginx ;;
+sa)
+        netstat -ntulp |grep -q nginx
+        [ $? -eq 0 ] && echo "服务正在运行" || echo "服务没有开启"  ;;
+*)
+        echo "st开启|stop关闭|re重启|sa查询状态"
+esac
+---------------------------------------------------------------------------
+修改输出字体颜色
+echo -e "\033[32mABCD\033[0m"     输出不通颜色的ABCD
+echo -e "\033[33mABCD\033[0m"
+echo -e "\033[34mABCD\033[0m"
+---------------------------------------------------------------------------
+函数 
+1）函数的定义方法
+
+格式1：
+
+function  函数名 {
+    命令序列
+    .. ..
+}
+
+格式2：
+
+函数名() {
+    命令序列
+    .. ..
+}
+--------------------------------------------------------------
+使用函数编写方便调用不同颜色字体的脚本:
+#!/bin/bash
+cecho (){
+echo -e "\033[$1m$2\033[0m"
+}
+
+cecho 31 ABCDEFG
+cecho 32 ABCDEFG
+cecho 33 ABCDEFG
+cecho 34 ABCDEFG
+cecho 35 ABCDEFG
+cecho 36 ABCDEFG
+cecho 37 ABCDEFG
+
+
+
+#!/bin/bash
+abc(){
+abc|abc &
+}
+abc
+
+==================================
+循环的控制:
+exit        退出脚本
+break       终止循环,执行循环之后的任务 
+continue	终止当前循环,继续下一次循环
+------------------------
+#!/bin/bash
+for i in {1..10}
+do
+        [ $i -eq 5 ] && continue
+        echo $i
+done
+echo ok
+-------------------------
+#!/bin/bash
+for i in {1..10}
+do
+        [ $i -eq 5 ] && break
+        echo $i
+done
+echo ok
+=====================================
+字符串的处理
+1,字符串的截取
+${变量名:起始位置:长度}         如果是第1位,那么起始位置是0
+b=1802874632   定义变量
+echo ${b:3:4}   截取变量的内容从第4位开始截取4位
+echo ${b::4}	起始位置是0的话可以省略不写
+------------------------------------
+编写随机获取1位字符的脚本:
+#!/bin/bash
+x=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+RSTUVWXYZ0123456789
+n=$[RANDOM%62]
+echo ${x:n:1}
+-----------------------------------------------------
+编写获取随机8位密码的脚本
+#!/bin/bash
+x=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS
+TUVWXYZ0123456789
+for i in {1..8}
+do
+n=$[RANDOM%62]    获取0~61之间的随机数字
+p=${x:n:1}        获取1位随机字符
+pass=$pass$p      将每次获取的随机字符赋值给变量pass
+done
+echo $pass
+-------------------------------------------------------------------
+2,字符串的替换
+格式：${变量名/old/new}
+b=1802874632    
+echo ${b/1/a}     将1替换为a
+echo ${b/8/a}	  将8替换为a
+echo ${b//8/a}    将所有8替换为a
+echo ${b/0/}      将数字0替换为空,相当于删除
+----------------------------------------------
+3,字符串的删除
+${变量名#*关键词}    从左往右删除   掐头
+echo $a
+root:x:0:0:root:/root:/bin/bash
+echo ${a#root}    删除到第一个root
+echo ${a##*root}  删除到最后一个root,以及此root左边所有
+echo ${a##*/}     删除到最后一个/,以及此/左边所有
+echo ${a#*:root}  删除:root,以及左边所有
+--------------------------------------------
+${变量名%关键词*}    从右往左删除   去尾
+echo ${a%bash}   从右往左删除到bash
+echo ${a%root*}  从右往左删除到第一个root,以及root右边所有
+echo ${a%/*}     从右往左删除到第一个/,以及/右边所有
+echo ${a%%/*}    从右往左删除到最后一个/,以及/右边所有
+--------------------------------------------
+利用字符串删除功能,编写批量修改文件扩展名的脚本:
+#!/bin/bash
+for i in `ls *.txt`    首先找到修改目标
+do
+        n=${i%.*}      利用删除中的去尾将扩展名删除,剩下不带扩展名的文件名
+        mv $i $n.doc   在将上述文件名与.doc组合,修改为新名字
+done
+
+
+
+
+
+练习  3分钟
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,88 @@
+1、git的作者是谁，写出他的名字？
+	linus——林纳斯
+2、memcache数据库的默认端口号是多少？
+	11211
+3、什么是session？什么是cookie？
+	session：存储在服务端，保存用户名，登陆状态等信息
+	cookie：由服务端下发给客户端，保存在客户端的一个文件里，保存的主要内容是：sessionID
+4、memcache数据库如何定义/替换/读取/删除变量？（写出前置命令即可）
+	set 
+	replace
+	get
+	delete
+5、php的memcache扩展包名称是什么？
+	php-pecl-memcache
+6、访问tomcat网站的默认端口号是多少？如果8005端口起来，该如何处理？
+	8080
+	第一种：mv /dev/random  /dev/random.bak
+		ln -s /dev/urandom  /dev/random
+	第二种：yum install rng-tools
+		systemctl start rngd
+		systemctl enable rngd
+	
+7、tomcat默认主配置文件路径是什么？在主配置文件中，代表虚拟主机的标签是哪一个？
+	/usr/local/tomcat/conf/server.xml
+	<Host></Host>
+8、查看varnish日志的命令是哪两个？
+	varnishlog
+	varnishncsa
+9、以下Git常用指令分别代表什么？
+	clone：将远程服务器的仓库克隆到本地
+	config：修改GIT配置
+	add：添加修改到暂缓区
+	commit：提交修改到本地仓库
+	push：提交修改到远程服务器
+	pull：从远程服务拉取新的数据更新到本地
+10、查看Git版本日志的命令有哪些，至少写出3个？
+	git log
+	git log --pretty=oneline
+	git log --oneline
+	git reflog
+11、如何移动HEAD指针还原版本，请写出语法格式？
+	git  reset  --hard  版本号
+12、如何进行分支合并、切换分支，请分别写出命令？如果在生产环境种，合并分支时发生冲突，该如何解决，请写出思路？
+	git  merge  分支
+	git  checkout  分支
+	大概思路：需要先查看冲突的分支是哪一个，然后与相关人员进行协调，然后再去手动解决冲突。
+13、Git支持哪些协议服务器？请写出每种协议的访问方式？
+	ssh、git、http
+	ssh：git   clone   用户名@GIT服务器IP地址:版本库路径
+	git：git   clone  git://GIT服务器IP地址:/版本库路径
+	http：直接通过浏览器访问（firefox 服务器IP或域名/版本库路径）
+14、如何配置网卡的网关，请写出详细命令，不允许tab键？
+	nmcli connection modify eth0 ipv4.method manual ipv4.gateway 192.168.4.5 connection.autoconnect yes
+15、VPN的类型有哪4种，请写出名称？
+	GRE VPN
+	PPTP VPN
+	L2TP+IPSec VPN
+	SSL VPN
+16、请写出以下ipvsadm选项指令的意思？
+	ipvsadm -E：修改虚拟服务器
+	ipvsadm -d：删除真实服务器
+	ipvsadm -C：清除所有配置
+17、请写出下列在LVS中所代表的意思？
+	VIP：虚拟IP地址，公布给用户访问的虚拟IP地址
+	DIP：调度器连接节点服务器的IP地址
+	CIP：客户端的IP地址
+	RIP：真实服务器IP地址
+	Director Server：调度服务器
+	Real Server：真实服务器
+18、集群的分类有哪些？
+	高性能集群
+	负载均衡集群
+	高可用集群
+19、LVS有哪些工作模式，至少写出3种？请写出每种工作模式的区别？
+	NAT：通过网络地址转换实现的虚拟服务器，大并发访问时，调度器性能成为瓶颈
+	DR：直接使用路由技术实现虚拟服务器
+	TUN：通过隧道方式实现虚拟服务器
+20、常用的调度算法有哪些，至少写出4种？
+	轮询
+	加权轮询
+	最少链接
+	加权最少链接
+	源地址散列
+	基于局部性的最少链接
+	带复制的基于局部性最少链接
+	目标地址散列
+	最短的期望的延迟
+	最少队列调度	

@@ -1,0 +1,167 @@
+回顾
+case分支
+
+case 变量 in
+模式1)
+	命令序列 ;;
+模式2)
+	命令序列 ;;
+*)
+	命令序列
+esac
+
+函数 可以将公共的语句块存储在一个函数中,达到精简脚本的目的
+
+方式一
+function 函数名 {
+	命令序列
+}
+方式二
+函数名 (){
+	命令序列
+}
+----------------------------------------
+for    
+while 
+exit
+break
+continue
+-----------------------------
+字符串处理
+${变量名:}   截取
+${变量名/}  替换
+${变量名#}  掐头
+${变量名%}  去尾
+===================================
+字符串初值的处理 
+${变量名:-} 
+[root@server0 opt]# a=
+[root@server0 opt]# echo ${a:-123}      当变量是空时调用初值
+123
+[root@server0 opt]# a=789
+[root@server0 opt]# echo ${a:-123}      变量有值时不使用初值
+789
+-------------------------------------------------------
+配置密码时使用初值: 
+#!/bin/bash
+read -p "请输入用户名"  u
+useradd $u
+read -p "请输入密码(默认123456)" p
+echo ${p:-123456} | passwd --stdin $u
+-------------------------------------------------------
+正则表达式,使用若干符号配合对应工具,实现对文本的匹配,查找,过滤
+基本正则:
+^     grep ^root user     搜索以root开头
+$	  grep in$ user		  搜索以in结尾
+[]	  grep [in] user	  搜索字母i或者n
+[^]	  grep [^in] user     搜索除了字母i或者n
+grep "." user      搜索任意单个字符,包括空格,但不包括空行
+grep "ro*t" user   搜索r?t,r与t之间有没有o都可以
+grep ".*"   user   搜索任意, 包括空行
+grep "ro\{1,2\}t"  user   搜索rot,其中o可以出现1~2次
+grep "ro\{2\}t" user      搜索rot,其中o出现2次
+grep "ro\{1,\}t" user     搜索rot,其中o可以出现1次以及1次以上
+grep "0:\{2\}" user		  搜索0::
+grep "\(0:\)\{2\}" user   搜索0:0:
+-----------------------------------------------------------------------
+使用扩展正则, 需要用egrep或者 grep -E
+grep -E "ro+t" user      搜索rot,o可以出现1次以及1次以上
+egrep "ro+t" user	     搜索rot,o可以出现1次以及1次以上
+egrep "bi?n" user	     搜索bin,i可以出现0次或者1次
+egrep "ro{2}t" user 	 搜索rot,o出现2次
+egrep "ro{1,3}t" user 	 搜索rot,o出现1~3次
+egrep "ro{2,}t" user 	 搜索rot,o出现2次以及2次以上
+grep "\(0:\)\{2\}" user  搜索0:0:
+egrep "(0:){2}" user	 使用扩展正则搜索0:0:
+egrep "ro|in" user		 搜索ro或者in
+grep "\bthe" user1       搜索单词the,前面不能有数字字母下划线
+
+======================================
+echo 123 >> 1.txt
+vim 
+sed  流式编辑器, 非交互式修改文本,而且支持正则表达式,工作方式是逐行处理
+使用方式:
+1,  sed 选项  (定址符)指令     被处理的文件
+2,   前置命令  | sed 选项  (定址符)指令
+选项
+-n   屏蔽默认输出        -r   支持扩展正则     -i   写入文件
+指令
+p  输出         d  删除      s  替换
+
+sed -n 'p' user      使用sed输出所有行,屏蔽默认输出
+sed -n '1p' user     输出第1行
+sed -n '2,4p' user   输出2~4行
+sed -n '3p;5p' user  输出第3行和第5行
+sed -n '2,+3p' user  输出第2行以及后面的3行
+sed -n '1~2p' user   输出奇数行
+sed -n '2~2p' user   输出偶数行
+sed -n '/bash$/p' user     使用正则输出以bash结尾的行
+sed -rn '/root|bin/p' user 使用扩展正则输出有root或者bin的行
+
+sed -n '=' user      显示行号
+sed -n '$=' user	 显示最后一行的行号
+sed -n '$=' /etc/passwd
+sed  'd' user	     删除所有行
+sed  '1d' user		 删除第1行
+sed  '2,4d' user	 删除2~4行
+sed  '3,+2d' user    删除第3行以及后面2行
+sed  '2d;5d' user    删除第2行和第5行
+sed -i '1,3d' user   删除1~3行,并写入文件
+
+sed 's/xml/XML/'  a.txt		将每行中第1个xml替换为XML
+sed 's/xml/XML/3' a.txt 	将每行中的第3个xml替换为XML
+sed 's/xml/XML/g' a.txt 	将所有的xml都替换为XML
+sed 's/xml//g'     a.txt 	将所有行的xml都删除
+
+/bin/bash 换成 /sbin/sh
+
+sed 's//bin/bash//sbin/sh/' user
+sed 's/\/bin\/bash/\/sbin\/sh/' user
+sed 's!/bin/bash!/sbin/sh!' user
+sed 's(/bin/bash(/sbin/sh(' user
+sed 's#/bin/bash#/sbin/sh#' user
+
+编写脚本,对vsftpd服务完成装包配置启服务的过程,其中使用sed完成配置过程,实现服务可以匿名访问并且上传文件.
+
+#!/bin/bash
+yum -y install vsftpd &> /dev/null
+sed -i '/anon_up/s/#//'   /etc/vsftpd/vsftpd.conf
+systemctl restart vsftpd
+systemctl enable vsftpd
+systemctl stop firewalld
+setenforce 0
+chmod 777 /var/ftp/pub
+
+====================================================
+sed -i 's/#anon_up/anon_up/'   /etc/vsftpd/vsftpd.conf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
